@@ -1,6 +1,19 @@
 import * as XLSX from "xlsx";
 import { AdReport, AggregationResult } from "./types";
 
+export const GROUP_COLORS = [
+  "#5EC8F2", // celeste
+  "#8B93F8", // azul violeta
+  "#4ADEC4", // verde agua
+  "#B39DFF", // lavanda
+  "#6C8EBF"  // azul acero
+];
+
+export function getGroupColor(groupIndex: number): string {
+  if (groupIndex < 0) return "#94A3B8"; // default gray
+  return GROUP_COLORS[groupIndex % GROUP_COLORS.length];
+}
+
 export function normalize(s: string | null | undefined): string {
   return (s || "").toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
 }
@@ -85,8 +98,8 @@ export function aggregate(ads: AdReport[]): AggregationResult {
 }
 
 const HEADER_RULES: [keyof AdReport, (h: string) => boolean][] = [
-  ["reportStart", (h) => h === "inicio" || h.includes("inicio del informe") || h === "fecha de inicio"],
-  ["reportEnd", (h) => h === "fin" || h.includes("fin del informe") || h.includes("fecha de finalizacion") || h === "fecha de fin"],
+  ["reportStart", (h) => !h.includes("inicio del informe") && (h === "inicio" || h === "fecha de inicio" || h.includes("fecha de inicio"))],
+  ["reportEnd", (h) => !h.includes("fin del informe") && (h === "fin" || h === "fecha de fin" || h.includes("fecha de finalizacion") || h.includes("fecha de fin"))],
   ["campaign", (h) => h.includes("nombre de la campana") || h.includes("nombre del conjunto de anuncios") || h.includes("nombre del anuncio") || h.includes("nombre de la campaña")],
   ["status", (h) => h.includes("entrega") || h.includes("estado") || h === "activo" || h === "status" || h.includes("delivery") || h.includes("delivery status")],
   ["results", (h) => h === "resultados"],

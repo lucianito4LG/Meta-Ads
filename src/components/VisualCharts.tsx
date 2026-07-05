@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { AdReport } from "../types";
 import { fmtMoney, fmtInt, fmtPct, fmtMoney2 } from "../utils";
-import { BarChart3, Percent, Flame } from "lucide-react";
+import { BarChart3, Percent, Flame, ChevronDown, ChevronUp } from "lucide-react";
 
 interface VisualChartsProps {
   ads: AdReport[];
   variant?: "default" | "fiesta";
+  groupColor?: string;
 }
 
 type TabType = "spend" | "ctr" | "funnel";
@@ -57,12 +58,14 @@ function TooltipHover({ children, tooltipText }: TooltipHoverProps) {
   );
 }
 
-export default function VisualCharts({ ads, variant = "default" }: VisualChartsProps) {
+export default function VisualCharts({ ads, variant = "default", groupColor }: VisualChartsProps) {
   const [activeTab, setActiveTab] = useState<TabType>("spend");
+  const [showAll, setShowAll] = useState(false);
 
   if (!ads.length) return null;
 
   const isFiesta = variant === "fiesta";
+  const displayedAds = showAll || ads.length <= 4 ? ads : ads.slice(-4);
 
   // Find max values to scale the charts correctly
   const maxSpend = Math.max(...ads.map((a) => a.spend || 0), 1);
@@ -118,7 +121,7 @@ export default function VisualCharts({ ads, variant = "default" }: VisualChartsP
   const fHover4 = isFiesta ? "hover:border-blue-slate/60" : "hover:border-orchid/60";
 
   return (
-    <div className={containerClass}>
+    <div className={containerClass} style={isFiesta && groupColor ? { borderTop: `3px solid ${groupColor}` } : undefined}>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-white/10 pb-4 mb-6">
         <div>
           <h3 className="font-display font-semibold text-lg text-white">
@@ -171,7 +174,7 @@ export default function VisualCharts({ ads, variant = "default" }: VisualChartsP
                 />
               </div>
               <div className="space-y-4">
-                {ads.map((ad) => {
+                {displayedAds.map((ad) => {
                   const percentage = ((ad.spend || 0) / maxSpend) * 100;
                   return (
                     <div key={ad.id} className="group">
@@ -206,7 +209,7 @@ export default function VisualCharts({ ads, variant = "default" }: VisualChartsP
                 />
               </div>
               <div className="space-y-4">
-                {ads.map((ad) => {
+                {displayedAds.map((ad) => {
                   const resultsCount = ad.results || 0;
                   const percentage = (resultsCount / maxResults) * 100;
                   return (
@@ -229,6 +232,27 @@ export default function VisualCharts({ ads, variant = "default" }: VisualChartsP
               </div>
             </div>
           </div>
+
+          {ads.length > 4 && (
+            <div className="flex justify-center pt-2 border-t border-white/5 mt-4">
+              <button
+                onClick={() => setShowAll(!showAll)}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-jet border border-white/10 hover:border-white/25 text-xs text-slate-300 hover:text-white font-mono transition-all cursor-pointer shadow-md"
+              >
+                {showAll ? (
+                  <>
+                    <ChevronUp className="w-3.5 h-3.5 text-orchid" />
+                    Ver menos (Mostrar últimos 4)
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown className="w-3.5 h-3.5 text-orchid" />
+                    Ver todos los anuncios ({ads.length})
+                  </>
+                )}
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -251,7 +275,7 @@ export default function VisualCharts({ ads, variant = "default" }: VisualChartsP
             </div>
 
             <div className="space-y-5">
-              {ads.map((ad) => {
+              {displayedAds.map((ad) => {
                 const ctrL = ad.ctrLink || 0;
                 const ctrA = ad.ctrAll || 0;
                 const pctL = (ctrL / maxCtr) * 100;
@@ -288,6 +312,27 @@ export default function VisualCharts({ ads, variant = "default" }: VisualChartsP
                 );
               })}
             </div>
+
+            {ads.length > 4 && (
+              <div className="flex justify-center pt-2 border-t border-white/5 mt-4">
+                <button
+                  onClick={() => setShowAll(!showAll)}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-jet border border-white/10 hover:border-white/25 text-xs text-slate-300 hover:text-white font-mono transition-all cursor-pointer shadow-md"
+                >
+                  {showAll ? (
+                    <>
+                      <ChevronUp className="w-3.5 h-3.5 text-orchid" />
+                      Ver menos (Mostrar últimos 4)
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="w-3.5 h-3.5 text-orchid" />
+                      Ver todos los anuncios ({ads.length})
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

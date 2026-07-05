@@ -8,6 +8,7 @@ interface AdTableProps {
   ads: AdReport[];
   onRename: (id: string, currentLabel: string) => void;
   onDelete: (id: string) => void;
+  groupColor?: string;
 }
 
 interface TooltipHeaderProps {
@@ -42,7 +43,7 @@ function TooltipHeader({ title, tooltipText, align = "center" }: TooltipHeaderPr
   );
 }
 
-export default function AdTable({ ads, onRename, onDelete }: AdTableProps) {
+export default function AdTable({ ads, onRename, onDelete, groupColor }: AdTableProps) {
   const [selectedAd, setSelectedAd] = useState<AdReport | null>(null);
 
   const getStatusBadge = (status: string) => {
@@ -191,7 +192,7 @@ export default function AdTable({ ads, onRename, onDelete }: AdTableProps) {
           </thead>
           <tbody className="divide-y divide-white/5">
             {ads.length > 0 ? (
-              ads.map((ad) => (
+              ads.map((ad, idx) => (
                 <tr 
                   key={ad.id} 
                   onClick={() => setSelectedAd(ad)}
@@ -200,8 +201,17 @@ export default function AdTable({ ads, onRename, onDelete }: AdTableProps) {
                 >
                   <td className="py-3.5 px-4">
                     <div className="flex items-center gap-2.5 max-w-[240px] sm:max-w-xs">
-                      {/* Status indicator dot */}
-                      {(() => {
+                      {/* Status indicator dot or group dot */}
+                      {groupColor ? (
+                        <span 
+                          className="h-2 w-2 rounded-full shrink-0" 
+                          style={{ 
+                            backgroundColor: groupColor, 
+                            opacity: idx === 0 ? 1 : 0.4 
+                          }} 
+                          title={idx === 0 ? "Inicio del grupo (Fiesta)" : "Miembro del grupo (Fiesta)"}
+                        />
+                      ) : (() => {
                         const s = (ad.status || "").toLowerCase();
                         if (s.includes("complet")) {
                           return (

@@ -134,7 +134,7 @@ export default function AdDetailsModal({ ad, onClose }: AdDetailsModalProps) {
               </div>
 
               <div className="space-y-1">
-                <span className="text-[10px] text-slate-400 font-mono block">Fechas del Informe:</span>
+                <span className="text-[10px] text-slate-400 font-mono block">Inicio y Fin del Anuncio:</span>
                 <span className="text-xs text-slate-200 font-mono flex items-center gap-1">
                   <Calendar className="w-3.5 h-3.5 text-slate-500" />
                   {ad.reportStart || "—"} al {ad.reportEnd || "—"}

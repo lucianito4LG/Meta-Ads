@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { AdReport, Collection } from "../types";
-import { aggregate } from "../utils";
+import { aggregate, getGroupColor } from "../utils";
 import KpiGrid from "./KpiGrid";
 import VisualCharts from "./VisualCharts";
 import AdTable from "./AdTable";
@@ -45,6 +45,8 @@ export default function FiestasTab({
   };
 
   const selectedCol = collections.find((c) => c.id === selectedColId);
+  const selectedColIndex = selectedCol ? collections.findIndex((c) => c.id === selectedCol.id) : -1;
+  const groupColor = selectedColIndex !== -1 ? getGroupColor(selectedColIndex) : "";
   const colAds = selectedCol ? ads.filter((a) => selectedCol.adIds.includes(a.id)) : [];
   const colAgg = selectedCol ? aggregate(colAds) : null;
 
@@ -61,8 +63,9 @@ export default function FiestasTab({
             <div className="inline-flex items-center gap-1.5 bg-dusty-denim/20 border border-dusty-denim/30 text-eggshell rounded-full px-3 py-1 text-[10px] font-mono tracking-widest uppercase">
               <Sparkles className="w-3 h-3 text-eggshell animate-pulse" /> Vista de Fiesta / Grupo
             </div>
-            <h2 className="font-display font-black text-3xl sm:text-4xl text-white tracking-tight leading-none">
-              🎉 {selectedCol.name}
+            <h2 className="font-display font-black text-3xl sm:text-4xl text-white tracking-tight leading-none flex items-center gap-3">
+              <span className="w-3.5 h-3.5 rounded-full shrink-0" style={{ backgroundColor: groupColor }} />
+              {selectedCol.name}
             </h2>
             <p className="text-xs text-slate-400 font-mono">
               Grupo creado el {selectedCol.createdAt} · {colAds.length} {colAds.length === 1 ? "anuncio asignado" : "anuncios asignados"}
@@ -111,7 +114,7 @@ export default function FiestasTab({
           {/* Visual Charts in Fiesta variant */}
           {colAds.length > 0 ? (
             <div className="space-y-8">
-              <VisualCharts ads={colAds} variant="fiesta" />
+              <VisualCharts ads={colAds} variant="fiesta" groupColor={groupColor} />
               
               <div className="bg-[#1d2d44]/30 border border-white/10 rounded-xl p-6 shadow-sm">
                 <div className="flex items-center gap-2 mb-4 border-b border-white/10 pb-3">
@@ -122,7 +125,7 @@ export default function FiestasTab({
                     {colAds.length} {colAds.length === 1 ? "anuncio" : "anuncios"}
                   </span>
                 </div>
-                <AdTable ads={colAds} onRename={onRenameAd} onDelete={onDeleteAd} />
+                <AdTable ads={colAds} onRename={onRenameAd} onDelete={onDeleteAd} groupColor={groupColor} />
               </div>
             </div>
           ) : (
@@ -211,9 +214,10 @@ export default function FiestasTab({
         <h3 className="font-display font-semibold text-lg text-white">Tus Fiestas</h3>
         {collections.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {collections.map((col) => {
+            {collections.map((col, index) => {
               const activeColAds = ads.filter((a) => col.adIds.includes(a.id));
               const agg = aggregate(activeColAds);
+              const groupColor = getGroupColor(index);
 
               return (
                 <div
@@ -223,9 +227,12 @@ export default function FiestasTab({
                 >
                   <div>
                     <div className="flex items-center justify-between gap-2 mb-2">
-                      <h4 className="font-display font-bold text-base text-white group-hover:text-orchid transition-colors truncate">
-                        {col.name}
-                      </h4>
+                      <div className="flex items-center gap-2 truncate">
+                        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: groupColor }} title="Color del grupo" />
+                        <h4 className="font-display font-bold text-base text-white group-hover:text-orchid transition-colors truncate">
+                          {col.name}
+                        </h4>
+                      </div>
                       <span className="text-[10px] font-mono text-slate-400 bg-jet border border-white/10 rounded-full px-2 py-0.5 shrink-0">
                         {activeColAds.length} {activeColAds.length === 1 ? "anuncio" : "anuncios"}
                       </span>
