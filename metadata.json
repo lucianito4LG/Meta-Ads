@@ -1,6 +1,26 @@
 {
-  "name": "IMCREW Ads Panel",
-  "description": "Panel de métricas para anuncios de Meta Ads e Instagram, con creación de grupos (fiestas) y almacenamiento en JSON.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "entities": {
+    "Report": {
+      "title": "Report",
+      "description": "Consolidated reports for ads and collections.",
+      "type": "object",
+      "properties": {
+        "ads": {
+          "type": "array"
+        },
+        "collections": {
+          "type": "array"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "firestore": {
+    "/reports/data": {
+      "schema": "Report",
+      "description": "Single consolidated report document containing all campaign data."
+    }
+  }
 }
