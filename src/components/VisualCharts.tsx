@@ -7,6 +7,7 @@ interface VisualChartsProps {
   ads: AdReport[];
   variant?: "default" | "fiesta";
   groupColor?: string;
+  onAdClick?: (ad: AdReport) => void;
 }
 
 type TabType = "spend" | "ctr" | "funnel";
@@ -58,7 +59,7 @@ function TooltipHover({ children, tooltipText }: TooltipHoverProps) {
   );
 }
 
-export default function VisualCharts({ ads, variant = "default", groupColor }: VisualChartsProps) {
+export default function VisualCharts({ ads, variant = "default", groupColor, onAdClick }: VisualChartsProps) {
   const [activeTab, setActiveTab] = useState<TabType>("spend");
   const [showAll, setShowAll] = useState(false);
 
@@ -179,7 +180,11 @@ export default function VisualCharts({ ads, variant = "default", groupColor }: V
                   return (
                     <div key={ad.id} className="group">
                       <div className="flex justify-between text-xs mb-1.5">
-                        <span className="text-slate-300 truncate max-w-[200px] sm:max-w-[300px] font-medium" title={ad.label || ad.campaign}>
+                        <span 
+                          onClick={() => onAdClick?.(ad)}
+                          className={`text-slate-300 truncate max-w-[200px] sm:max-w-[300px] font-medium ${onAdClick ? 'hover:text-orchid hover:underline cursor-pointer transition-colors' : ''}`}
+                          title={ad.label || ad.campaign}
+                        >
                           {ad.label || ad.campaign}
                         </span>
                         <span className="font-mono text-slate-400">{fmtMoney(ad.spend)}</span>
@@ -215,7 +220,11 @@ export default function VisualCharts({ ads, variant = "default", groupColor }: V
                   return (
                     <div key={ad.id} className="group">
                       <div className="flex justify-between text-xs mb-1.5">
-                        <span className="text-slate-300 truncate max-w-[200px] sm:max-w-[300px] font-medium" title={ad.label || ad.campaign}>
+                        <span 
+                          onClick={() => onAdClick?.(ad)}
+                          className={`text-slate-300 truncate max-w-[200px] sm:max-w-[300px] font-medium ${onAdClick ? 'hover:text-orchid hover:underline cursor-pointer transition-colors' : ''}`}
+                          title={ad.label || ad.campaign}
+                        >
                           {ad.label || ad.campaign}
                         </span>
                         <span className={`font-mono ${resultsTextClass} font-semibold`}>{resultsCount ? `${fmtInt(resultsCount)}` : "—"}</span>
@@ -284,7 +293,13 @@ export default function VisualCharts({ ads, variant = "default", groupColor }: V
                 return (
                   <div key={ad.id} className={`bg-jet border ${ctrCardHoverClass} rounded-lg p-3.5 transition-all`}>
                     <div className="flex justify-between text-xs mb-2">
-                      <span className="font-semibold text-slate-200 truncate max-w-[280px] sm:max-w-md">{ad.label || ad.campaign}</span>
+                      <span 
+                        onClick={() => onAdClick?.(ad)}
+                        className={`font-semibold text-slate-200 truncate max-w-[280px] sm:max-w-md ${onAdClick ? 'hover:text-orchid hover:underline cursor-pointer transition-colors' : ''}`}
+                        title={ad.label || ad.campaign}
+                      >
+                        {ad.label || ad.campaign}
+                      </span>
                       <div className="flex gap-4 font-mono text-xs">
                         <span className={ctrLTextClass}>L: {fmtPct(ctrL)}</span>
                         <span className={ctrATextClass}>T: {fmtPct(ctrA)}</span>

@@ -1,7 +1,8 @@
 import React from "react";
 import { AdReport } from "../types";
-import { X, Calendar, DollarSign, Users, Eye, MousePointer, Percent, TrendingUp, AlertCircle, ShoppingBag, CreditCard, Layers } from "lucide-react";
+import { X, Calendar, DollarSign, Users, Eye, MousePointer, Percent, TrendingUp, AlertCircle, ShoppingBag, CreditCard, Layers, Download } from "lucide-react";
 import { fmtInt, fmtPct, fmtMoney2, parseDate } from "../utils";
+import { generateSingleAdPDF } from "../utils/pdfGenerator";
 
 interface AdDetailsModalProps {
   ad: AdReport;
@@ -51,12 +52,39 @@ export default function AdDetailsModal({ ad, onClose }: AdDetailsModalProps) {
               </p>
             )}
           </div>
-          <button 
-            onClick={onClose}
-            className="p-1.5 rounded-lg border border-white/10 bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer shrink-0"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            <button 
+              onClick={() => {
+                const isFiesta = ad.campaign?.toLowerCase().includes("fiesta") || 
+                                 ad.label?.toLowerCase().includes("fiesta") || 
+                                 ad.source?.toLowerCase().includes("fiesta");
+                
+                const formattedAd = {
+                  ...ad,
+                  name: ad.label || ad.campaign,
+                  spend: ad.spend || 0,
+                  results: ad.results || 0,
+                  cpr: ad.costPerResult || 0,
+                  clicks: ad.linkClicks || ad.allClicks || 0,
+                  ctr: ad.ctrLink || ad.ctrAll || 0,
+                  impressions: ad.impressions || 0,
+                  cpc: ad.cpcLink || ad.cpcAll || 0,
+                  cpm: ad.cpm || 0,
+                };
+                generateSingleAdPDF(formattedAd, isFiesta);
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-orchid/30 bg-orchid/10 text-orchid hover:bg-orchid/20 hover:text-white transition-all cursor-pointer text-xs font-medium"
+            >
+              <Download className="w-4 h-4" />
+              <span>Descargar PDF</span>
+            </button>
+            <button 
+              onClick={onClose}
+              className="p-1.5 rounded-lg border border-white/10 bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer shrink-0"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Scrollable Content */}

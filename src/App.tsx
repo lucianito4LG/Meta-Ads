@@ -6,6 +6,7 @@ import VisualCharts from "./components/VisualCharts";
 import AdTable from "./components/AdTable";
 import UploadZone from "./components/UploadZone";
 import FiestasTab from "./components/FiestasTab";
+import AdDetailsModal from "./components/AdDetailsModal";
 import { Download, Upload, AlertCircle, RefreshCw, BarChart2, PlusCircle, Award, Settings, FileDown, Calendar } from "lucide-react";
 import { generatePDF } from "./utils/pdfGenerator";
 
@@ -19,6 +20,7 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [startDateFilter, setStartDateFilter] = useState<string>("");
   const [endDateFilter, setEndDateFilter] = useState<string>("");
+  const [selectedAd, setSelectedAd] = useState<AdReport | null>(null);
 
   // Show Toast helper
   const showToast = (msg: string) => {
@@ -529,7 +531,7 @@ export default function App() {
 
                   {filteredAds.length > 0 ? (
                     <>
-                      <VisualCharts ads={filteredAds} />
+                      <VisualCharts ads={filteredAds} onAdClick={setSelectedAd} />
 
                       <div className="space-y-4">
                         <h3 className="font-display font-semibold text-base text-white">Listado de todos los anuncios</h3>
@@ -576,6 +578,7 @@ export default function App() {
                     onDeleteCollection={handleDeleteCollection}
                     onRenameAd={handleRenameAd}
                     onDeleteAd={handleDeleteAd}
+                    onAdClick={setSelectedAd}
                   />
                 </div>
               )}
@@ -598,6 +601,10 @@ export default function App() {
           <span className="w-2 h-2 rounded-full bg-eggshell" />
           {toastMsg}
         </div>
+      )}
+
+      {selectedAd && (
+        <AdDetailsModal ad={selectedAd} onClose={() => setSelectedAd(null)} />
       )}
     </div>
   );

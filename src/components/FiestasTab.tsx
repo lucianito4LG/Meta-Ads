@@ -14,6 +14,7 @@ interface FiestasTabProps {
   onDeleteCollection: (id: string) => void;
   onRenameAd: (id: string, currentLabel: string) => void;
   onDeleteAd: (id: string) => void;
+  onAdClick?: (ad: AdReport) => void;
 }
 
 export default function FiestasTab({
@@ -23,6 +24,7 @@ export default function FiestasTab({
   onDeleteCollection,
   onRenameAd,
   onDeleteAd,
+  onAdClick,
 }: FiestasTabProps) {
   const [selectedColId, setSelectedColId] = useState<string | null>(null);
   const [newColName, setNewColName] = useState("");
@@ -114,7 +116,7 @@ export default function FiestasTab({
           {/* Visual Charts in Fiesta variant */}
           {colAds.length > 0 ? (
             <div className="space-y-8">
-              <VisualCharts ads={colAds} variant="fiesta" groupColor={groupColor} />
+              <VisualCharts ads={colAds} variant="fiesta" groupColor={groupColor} onAdClick={onAdClick} />
               
               <div className="bg-[#1d2d44]/30 border border-white/10 rounded-xl p-6 shadow-sm">
                 <div className="flex items-center gap-2 mb-4 border-b border-white/10 pb-3">
