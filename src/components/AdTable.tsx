@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { AdReport } from "../types";
 import { fmtInt, fmtPct, fmtMoney2 } from "../utils";
 import { Edit2, Trash2 } from "lucide-react";
+import AdDetailsModal from "./AdDetailsModal";
 
 interface AdTableProps {
   ads: AdReport[];
@@ -41,6 +43,8 @@ function TooltipHeader({ title, tooltipText, align = "center" }: TooltipHeaderPr
 }
 
 export default function AdTable({ ads, onRename, onDelete }: AdTableProps) {
+  const [selectedAd, setSelectedAd] = useState<AdReport | null>(null);
+
   const getStatusBadge = (status: string) => {
     const s = (status || "").toLowerCase();
     if (s.includes("recien complet") || s.includes("recién complet")) {
@@ -102,6 +106,13 @@ export default function AdTable({ ads, onRename, onDelete }: AdTableProps) {
                 <TooltipHeader
                   title="Estado"
                   tooltipText="Estado de entrega de la campaña o conjunto de anuncios en Meta Ads (Activo, Pausado, etc.)."
+                  align="center"
+                />
+              </th>
+              <th className="py-4 px-4 font-semibold text-center">
+                <TooltipHeader
+                  title="Tipo Presupuesto"
+                  tooltipText="Tipo de presupuesto asignado: Diario o de toda la campaña (Lifetime), y su monto."
                   align="center"
                 />
               </th>
@@ -181,20 +192,65 @@ export default function AdTable({ ads, onRename, onDelete }: AdTableProps) {
           <tbody className="divide-y divide-white/5">
             {ads.length > 0 ? (
               ads.map((ad) => (
-                <tr key={ad.id} className="hover:bg-orchid/[0.02] transition-colors group">
+                <tr 
+                  key={ad.id} 
+                  onClick={() => setSelectedAd(ad)}
+                  className="hover:bg-orchid/[0.04] active:bg-orchid/[0.08] transition-colors group cursor-pointer"
+                  title="Haz clic para ver todos los datos de este anuncio"
+                >
                   <td className="py-3.5 px-4">
-                    <div className="flex items-center gap-2 max-w-[240px] sm:max-w-xs">
+                    <div className="flex items-center gap-2.5 max-w-[240px] sm:max-w-xs">
+                      {/* Status indicator dot */}
+                      {(() => {
+                        const s = (ad.status || "").toLowerCase();
+                        if (s.includes("complet")) {
+                          return (
+                            <span className="h-2 w-2 rounded-full bg-orchid shrink-0" title="Completado"></span>
+                          );
+                        } else if (s.includes("inactive") || s.includes("inactivo")) {
+                          return (
+                            <span className="h-2 w-2 rounded-full bg-slate-500 shrink-0" title="Inactivo"></span>
+                          );
+                        } else if (s.includes("activ")) {
+                          return (
+                            <span className="relative flex h-2 w-2 shrink-0">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" title="Activo"></span>
+                            </span>
+                          );
+                        } else if (s.includes("pausad") || s.includes("off") || s.includes("suspend")) {
+                          return (
+                            <span className="h-2 w-2 rounded-full bg-amber-500 shrink-0" title="Pausado"></span>
+                          );
+                        } else {
+                          return (
+                            <span className="h-2 w-2 rounded-full bg-slate-600 shrink-0" title="Desconocido o Inactivo"></span>
+                          );
+                        }
+                      })()}
                       <span className="font-semibold text-white truncate" title={ad.label || ad.campaign}>
                         {ad.label || ad.campaign}
                       </span>
                     </div>
                     {ad.campaign !== ad.label && (
-                      <span className="block text-[10px] text-slate-500 font-mono truncate max-w-[240px]" title={ad.campaign}>
+                      <span className="block text-[10px] text-slate-500 font-mono truncate pl-4.5 max-w-[240px]" title={ad.campaign}>
                         {ad.campaign}
                       </span>
                     )}
                   </td>
                   <td className="py-3.5 px-4 text-center">{getStatusBadge(ad.status)}</td>
+                  <td className="py-3.5 px-4 text-center">
+                    <div className="flex flex-col items-center justify-center">
+                      <span className="font-mono text-slate-300 font-medium">
+                        {ad.budget !== null && ad.budget !== undefined ? fmtMoney2(ad.budget) : "—"}
+                      </span>
+                      {ad.budgetType && (
+                        <span className="text-[10px] text-slate-500 font-mono block mt-0.5">
+                          {ad.budgetType.toLowerCase().includes("diari") ? "Diario" : "Toda la campaña"}
+                        </span>
+                      )}
+                    </div>
+                  </td>
                   <td className="py-3.5 px-4 text-right font-mono text-slate-300">{fmtInt(ad.reach)}</td>
                   <td className="py-3.5 px-4 text-right font-mono text-slate-300">{fmtInt(ad.impressions)}</td>
                   <td className="py-3.5 px-4 text-right font-mono text-slate-300">{fmtInt(ad.linkClicks)}</td>
@@ -214,14 +270,20 @@ export default function AdTable({ ads, onRename, onDelete }: AdTableProps) {
                   <td className="py-3.5 px-4 text-center">
                     <div className="flex items-center justify-center gap-1">
                       <button
-                        onClick={() => onRename(ad.id, ad.label || ad.campaign)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onRename(ad.id, ad.label || ad.campaign);
+                        }}
                         className="p-1.5 rounded-lg border border-white/10 bg-white/5 text-slate-400 hover:text-orchid hover:border-orchid/40 transition-all cursor-pointer"
                         title="Renombrar etiqueta"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       <button
-                        onClick={() => onDelete(ad.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDelete(ad.id);
+                        }}
                         className="p-1.5 rounded-lg border border-white/10 bg-white/5 text-slate-400 hover:text-red-400 hover:border-red-500/40 transition-all cursor-pointer"
                         title="Eliminar del panel"
                       >
@@ -233,7 +295,7 @@ export default function AdTable({ ads, onRename, onDelete }: AdTableProps) {
               ))
             ) : (
               <tr>
-                <td colSpan={13} className="py-12 text-center text-slate-500 font-mono text-sm">
+                <td colSpan={14} className="py-12 text-center text-slate-500 font-mono text-sm">
                   No hay anuncios cargados. Cargá un reporte desde la pestaña "Cargar Informe" o restaurá un respaldo.
                 </td>
               </tr>
@@ -241,6 +303,14 @@ export default function AdTable({ ads, onRename, onDelete }: AdTableProps) {
           </tbody>
         </table>
       </div>
+
+      {/* Detailed Modal Overlay */}
+      {selectedAd && (
+        <AdDetailsModal 
+          ad={selectedAd} 
+          onClose={() => setSelectedAd(null)} 
+        />
+      )}
     </div>
   );
 }

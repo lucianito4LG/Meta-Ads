@@ -4,7 +4,8 @@ import { aggregate } from "../utils";
 import KpiGrid from "./KpiGrid";
 import VisualCharts from "./VisualCharts";
 import AdTable from "./AdTable";
-import { PlusCircle, Users, Calendar, Trash2, ArrowLeft, Check, Sparkles } from "lucide-react";
+import { PlusCircle, Users, Calendar, Trash2, ArrowLeft, Check, Sparkles, FileDown } from "lucide-react";
+import { generatePDF } from "../utils/pdfGenerator";
 
 interface FiestasTabProps {
   ads: AdReport[];
@@ -74,6 +75,13 @@ export default function FiestasTab({
               className="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 text-xs font-mono text-slate-300 hover:text-white hover:bg-white/10 py-2.5 px-5 rounded-full transition-all cursor-pointer"
             >
               <ArrowLeft className="w-3.5 h-3.5" /> Volver a Grupos
+            </button>
+            <button
+              onClick={() => generatePDF(`Reporte de Fiesta: ${selectedCol.name}`, colAds, true)}
+              className="inline-flex items-center gap-1.5 bg-[#d7ceb2] text-[#4c5760] hover:bg-[#d7ceb2]/80 text-xs font-mono font-black py-2.5 px-5 rounded-full transition-all cursor-pointer shadow-md"
+              title="Descargar reporte de esta fiesta en PDF"
+            >
+              <FileDown className="w-3.5 h-3.5" /> Descargar PDF
             </button>
             <button
               onClick={() => {

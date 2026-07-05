@@ -29,6 +29,7 @@ export interface AdReport {
   label: string;
   uploadedAt: string;
   source: string;
+  raw?: Record<string, any> | null;
 }
 
 export interface Collection {

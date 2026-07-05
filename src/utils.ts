@@ -25,6 +25,27 @@ export function fmtMoney2(n: number | null | undefined): string {
   return "$" + n.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+export function parseDate(dateStr: string | null | undefined): Date | null {
+  if (!dateStr) return null;
+  const str = dateStr.toString().trim();
+  if (!isNaN(Number(str))) {
+    return new Date(Number(str));
+  }
+  let d = new Date(str);
+  if (!isNaN(d.getTime())) return d;
+
+  const parts = str.split(/[-/.]/);
+  if (parts.length === 3) {
+    if (parts[0].length === 4) {
+      d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+    } else {
+      d = new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+    }
+    if (!isNaN(d.getTime())) return d;
+  }
+  return null;
+}
+
 export function aggregate(ads: AdReport[]): AggregationResult {
   const sum = (key: keyof AdReport) =>
     ads.reduce((acc, a) => acc + (Number(a[key]) || 0), 0);
@@ -64,17 +85,17 @@ export function aggregate(ads: AdReport[]): AggregationResult {
 }
 
 const HEADER_RULES: [keyof AdReport, (h: string) => boolean][] = [
-  ["reportStart", (h) => h.includes("inicio del informe")],
-  ["reportEnd", (h) => h.includes("fin del informe")],
+  ["reportStart", (h) => h === "inicio" || h.includes("inicio del informe") || h === "fecha de inicio"],
+  ["reportEnd", (h) => h === "fin" || h.includes("fin del informe") || h.includes("fecha de finalizacion") || h === "fecha de fin"],
   ["campaign", (h) => h.includes("nombre de la campana") || h.includes("nombre del conjunto de anuncios") || h.includes("nombre del anuncio") || h.includes("nombre de la campaña")],
-  ["status", (h) => h.includes("entrega de la campana") || h.includes("entrega del conjunto") || h.includes("entrega del anuncio") || h.includes("entrega de la campaña")],
+  ["status", (h) => h.includes("entrega") || h.includes("estado") || h === "activo" || h === "status" || h.includes("delivery") || h.includes("delivery status")],
   ["results", (h) => h === "resultados"],
   ["resultIndicator", (h) => h.includes("indicador de resultado")],
   ["reach", (h) => h.includes("alcance")],
   ["frequency", (h) => h.includes("frecuencia")],
   ["costPerResult", (h) => h.includes("coste por resultado") || h.includes("costo por resultado")],
-  ["budgetType", (h) => h.includes("tipo de presupuesto")],
-  ["budget", (h) => h.includes("presupuesto")],
+  ["budgetType", (h) => h.includes("tipo de presupuesto") || h.includes("budget type") || h.includes("tipo presupuesto") || h === "tipo"],
+  ["budget", (h) => h === "presupuesto" || h.includes("presupuesto") || h.includes("budget")],
   ["spend", (h) => h.includes("importe gastado") || h.includes("monto gastado")],
   ["impressions", (h) => h.includes("impresiones")],
   ["cpm", (h) => h.includes("cpm")],

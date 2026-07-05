@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { AdReport, Collection } from "./types";
-import { aggregate } from "./utils";
+import { aggregate, parseDate } from "./utils";
 import KpiGrid from "./components/KpiGrid";
 import VisualCharts from "./components/VisualCharts";
 import AdTable from "./components/AdTable";
 import UploadZone from "./components/UploadZone";
 import FiestasTab from "./components/FiestasTab";
-import { Download, Upload, AlertCircle, RefreshCw, BarChart2, PlusCircle, Award, Settings } from "lucide-react";
+import { Download, Upload, AlertCircle, RefreshCw, BarChart2, PlusCircle, Award, Settings, FileDown, Calendar } from "lucide-react";
+import { generatePDF } from "./utils/pdfGenerator";
 
 export default function App() {
   const [ads, setAds] = useState<AdReport[]>([]);
@@ -16,6 +17,8 @@ export default function App() {
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [dbStatus, setDbStatus] = useState<"connected" | "empty" | "deleted">("connected");
   const [showSettings, setShowSettings] = useState(false);
+  const [startDateFilter, setStartDateFilter] = useState<string>("");
+  const [endDateFilter, setEndDateFilter] = useState<string>("");
 
   // Show Toast helper
   const showToast = (msg: string) => {
@@ -266,8 +269,36 @@ export default function App() {
     e.target.value = ""; // Clear file input
   };
 
+  // Filter ads by date
+  const filteredAds = React.useMemo(() => {
+    let result = ads;
+    if (startDateFilter) {
+      const startLimit = new Date(startDateFilter);
+      startLimit.setHours(0, 0, 0, 0);
+      result = result.filter((ad) => {
+        const startD = parseDate(ad.reportStart) || parseDate(ad.uploadedAt);
+        if (!startD) return true;
+        const compareD = new Date(startD);
+        compareD.setHours(0, 0, 0, 0);
+        return compareD >= startLimit;
+      });
+    }
+    if (endDateFilter) {
+      const endLimit = new Date(endDateFilter);
+      endLimit.setHours(23, 59, 59, 999);
+      result = result.filter((ad) => {
+        const endD = parseDate(ad.reportEnd) || parseDate(ad.reportStart) || parseDate(ad.uploadedAt);
+        if (!endD) return true;
+        const compareD = new Date(endD);
+        compareD.setHours(0, 0, 0, 0);
+        return compareD <= endLimit;
+      });
+    }
+    return result;
+  }, [ads, startDateFilter, endDateFilter]);
+
   // Aggregated data for all loaded ads
-  const globalAgg = aggregate(ads);
+  const globalAgg = React.useMemo(() => aggregate(filteredAds), [filteredAds]);
 
   return (
     <div className={`min-h-screen bg-ink-black text-slate-300 font-sans selection:bg-dusty-denim/30 relative pb-20 transition-colors duration-500 ${activeTab === "fiestas" ? "theme-fiestas" : "theme-default"}`}>
@@ -425,19 +456,108 @@ export default function App() {
             <>
               {activeTab === "resumen" && (
                 <div className="space-y-8 animate-fade-in">
-                  <div className="border-b border-white/10 pb-2">
-                    <h2 className="font-display font-semibold text-lg text-white">Vista General — Todos los Anuncios</h2>
-                    <p className="text-xs text-slate-400 mt-0.5">Métricas de rendimiento integradas de todo el panel</p>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-white/10 pb-4">
+                    <div>
+                      <h2 className="font-display font-semibold text-lg text-white">Vista General — Todos los Anuncios</h2>
+                      <p className="text-xs text-slate-400 mt-0.5">Métricas de rendimiento integradas de todo el panel</p>
+                    </div>
+                    {filteredAds.length > 0 && (
+                      <button
+                        onClick={() => {
+                          const dateRangeSuffix = startDateFilter || endDateFilter 
+                            ? ` (${startDateFilter ? `desde ${startDateFilter}` : ""} ${endDateFilter ? `hasta ${endDateFilter}` : ""})`
+                            : "";
+                          generatePDF(`Resumen General de Anuncios${dateRangeSuffix}`, filteredAds, false);
+                        }}
+                        className="inline-flex items-center gap-1.5 bg-orchid text-jet hover:bg-orchid/80 text-xs font-mono font-bold py-2.5 px-5 rounded-full transition-all cursor-pointer shadow-md self-start sm:self-auto"
+                        title="Descargar resumen general de anuncios en PDF"
+                      >
+                        <FileDown className="w-3.5 h-3.5" /> Descargar Reporte PDF
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Filtro por fecha */}
+                  <div className="bg-jet-card border border-white/5 rounded-2xl p-4 flex flex-col md:flex-row items-start md:items-center gap-4 justify-between shadow-lg">
+                    <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                      <div className="flex items-center gap-2 text-slate-400 shrink-0">
+                        <Calendar className="w-4 h-4 text-orchid" />
+                        <span className="text-xs font-mono uppercase tracking-wider text-slate-300 font-bold">Filtrar por Fecha:</span>
+                      </div>
+                      
+                      <div className="flex flex-wrap items-center gap-3">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[9px] font-mono text-slate-500 uppercase font-bold">Desde</span>
+                          <input
+                            type="date"
+                            value={startDateFilter}
+                            onChange={(e) => setStartDateFilter(e.target.value)}
+                            className="bg-jet-dark border border-white/10 rounded-lg text-xs font-mono text-white px-3 py-1.5 focus:border-orchid/50 focus:outline-none transition-all cursor-pointer"
+                          />
+                        </div>
+                        
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[9px] font-mono text-slate-500 uppercase font-bold">Hasta</span>
+                          <input
+                            type="date"
+                            value={endDateFilter}
+                            onChange={(e) => setEndDateFilter(e.target.value)}
+                            className="bg-jet-dark border border-white/10 rounded-lg text-xs font-mono text-white px-3 py-1.5 focus:border-orchid/50 focus:outline-none transition-all cursor-pointer"
+                          />
+                        </div>
+
+                        {(startDateFilter || endDateFilter) && (
+                          <button
+                            onClick={() => {
+                              setStartDateFilter("");
+                              setEndDateFilter("");
+                            }}
+                            className="bg-white/5 hover:bg-white/10 hover:text-white text-slate-300 text-xs font-mono py-1.5 px-3 rounded-lg border border-white/10 transition-all self-end cursor-pointer"
+                          >
+                            Limpiar
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="text-xs font-mono text-slate-400 shrink-0 bg-white/5 border border-white/5 px-3 py-1.5 rounded-lg">
+                      Mostrando <strong className="text-orchid">{filteredAds.length}</strong> de <strong className="text-slate-300">{ads.length}</strong> anuncios
+                    </div>
                   </div>
 
                   <KpiGrid agg={globalAgg} />
 
-                  {ads.length > 0 && <VisualCharts ads={ads} />}
+                  {filteredAds.length > 0 ? (
+                    <>
+                      <VisualCharts ads={filteredAds} />
 
-                  <div className="space-y-4">
-                    <h3 className="font-display font-semibold text-base text-white">Listado de todos los anuncios</h3>
-                    <AdTable ads={ads} onRename={handleRenameAd} onDelete={handleDeleteAd} />
-                  </div>
+                      <div className="space-y-4">
+                        <h3 className="font-display font-semibold text-base text-white">Listado de todos los anuncios</h3>
+                        <AdTable ads={filteredAds} onRename={handleRenameAd} onDelete={handleDeleteAd} />
+                      </div>
+                    </>
+                  ) : (
+                    <div className="bg-jet-card border-2 border-dashed border-white/10 rounded-2xl p-12 text-center space-y-4">
+                      <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center mx-auto">
+                        <Calendar className="w-6 h-6 text-slate-500" />
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-sm text-slate-300 font-bold">No se encontraron anuncios</p>
+                        <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
+                          No hay anuncios cargados que correspondan al rango de fechas seleccionado.
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setStartDateFilter("");
+                          setEndDateFilter("");
+                        }}
+                        className="text-xs text-orchid font-mono font-bold hover:text-white underline transition-colors cursor-pointer"
+                      >
+                        Restablecer filtros
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
 
