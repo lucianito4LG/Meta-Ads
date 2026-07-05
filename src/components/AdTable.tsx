@@ -26,12 +26,12 @@ function TooltipHeader({ title, tooltipText, align = "center" }: TooltipHeaderPr
         <span className="text-[10px] text-slate-500 hover:text-slate-400 select-none">
           ⓘ
         </span>
-        <div className={`absolute top-full mt-2 hidden group-hover/tooltip:block bg-[#0a0b0d] border border-white/10 text-slate-200 rounded-lg p-3 text-[11px] w-64 z-50 normal-case whitespace-normal tracking-normal shadow-2xl text-left font-sans ${
+        <div className={`absolute top-full mt-2 hidden group-hover/tooltip:block bg-jet border border-white/10 text-slate-200 rounded-lg p-3 text-[11px] w-64 z-50 normal-case whitespace-normal tracking-normal shadow-2xl text-left font-sans ${
           align === "left" ? "left-0" : align === "right" ? "right-0" : "left-1/2 -translate-x-1/2"
         }`}>
           <div className="font-semibold text-white mb-1">{title}</div>
           <p className="text-slate-400 leading-relaxed font-normal">{tooltipText}</p>
-          <div className={`absolute bottom-full border-4 border-transparent border-b-[#0a0b0d] ${
+          <div className={`absolute bottom-full border-4 border-transparent border-b-jet ${
             align === "left" ? "left-4" : align === "right" ? "right-4" : "left-1/2 -translate-x-1/2"
           }`} />
         </div>
@@ -43,14 +43,35 @@ function TooltipHeader({ title, tooltipText, align = "center" }: TooltipHeaderPr
 export default function AdTable({ ads, onRename, onDelete }: AdTableProps) {
   const getStatusBadge = (status: string) => {
     const s = (status || "").toLowerCase();
-    if (s.includes("complet") || s.includes("activ")) {
+    if (s.includes("recien complet") || s.includes("recién complet")) {
+      return (
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-teal-500/10 text-teal-400 border border-teal-500/20">
+          Recién completado
+        </span>
+      );
+    }
+    if (s.includes("complet")) {
+      return (
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-orchid/10 text-orchid border border-orchid/20">
+          Completado
+        </span>
+      );
+    }
+    if (s.includes("inactive") || s.includes("inactivo")) {
+      return (
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-dusty-denim/10 text-dusty-denim border border-dusty-denim/20">
+          Inactivo
+        </span>
+      );
+    }
+    if (s.includes("activ")) {
       return (
         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-green-500/10 text-green-400 border border-green-500/20">
           Activo
         </span>
       );
     }
-    if (s.includes("inactiv") || s.includes("pausad") || s.includes("suspend") || s.includes("off")) {
+    if (s.includes("pausad") || s.includes("suspend") || s.includes("off")) {
       return (
         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
           Pausado
@@ -65,11 +86,11 @@ export default function AdTable({ ads, onRename, onDelete }: AdTableProps) {
   };
 
   return (
-    <div className="bg-[#16191f] border border-white/5 rounded-xl overflow-hidden shadow-2xl">
+    <div className="bg-jet-card border border-white/5 rounded-xl overflow-hidden shadow-2xl">
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-left text-xs">
           <thead>
-            <tr className="border-b border-white/10 bg-[#0a0b0d] font-mono text-slate-500 uppercase tracking-wider text-[10px]">
+            <tr className="border-b border-white/10 bg-jet font-mono text-slate-500 uppercase tracking-wider text-[10px]">
               <th className="py-4 px-4 font-semibold">
                 <TooltipHeader
                   title="Anuncio / Campaña"
@@ -160,7 +181,7 @@ export default function AdTable({ ads, onRename, onDelete }: AdTableProps) {
           <tbody className="divide-y divide-white/5">
             {ads.length > 0 ? (
               ads.map((ad) => (
-                <tr key={ad.id} className="hover:bg-blue-500/[0.02] transition-colors group">
+                <tr key={ad.id} className="hover:bg-orchid/[0.02] transition-colors group">
                   <td className="py-3.5 px-4">
                     <div className="flex items-center gap-2 max-w-[240px] sm:max-w-xs">
                       <span className="font-semibold text-white truncate" title={ad.label || ad.campaign}>
@@ -194,7 +215,7 @@ export default function AdTable({ ads, onRename, onDelete }: AdTableProps) {
                     <div className="flex items-center justify-center gap-1">
                       <button
                         onClick={() => onRename(ad.id, ad.label || ad.campaign)}
-                        className="p-1.5 rounded-lg border border-white/10 bg-white/5 text-slate-400 hover:text-blue-400 hover:border-blue-500/40 transition-all cursor-pointer"
+                        className="p-1.5 rounded-lg border border-white/10 bg-white/5 text-slate-400 hover:text-orchid hover:border-orchid/40 transition-all cursor-pointer"
                         title="Renombrar etiqueta"
                       >
                         <Edit2 className="w-3.5 h-3.5" />

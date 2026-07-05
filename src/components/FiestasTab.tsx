@@ -49,51 +49,80 @@ export default function FiestasTab({
 
   if (selectedCol && colAgg) {
     return (
-      <div className="space-y-6">
-        <button
-          onClick={() => setSelectedColId(null)}
-          className="inline-flex items-center gap-2 text-xs font-mono text-slate-400 hover:text-blue-400 transition-colors cursor-pointer"
-        >
-          <ArrowLeft className="w-4 h-4" /> Volver a Fiestas / Grupos
-        </button>
-
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-white/10 pb-4">
-          <div>
-            <span className="font-mono text-xs text-blue-400 uppercase tracking-wider block">Estadísticas del Grupo</span>
-            <h3 className="font-display font-bold text-2xl text-white flex items-center gap-2">
+      <div className="space-y-8 animate-fade-in">
+        {/* Navigation back and deletion bar */}
+        <div className="relative overflow-hidden bg-gradient-to-r from-[#1d2d44] via-[#1d2d44]/80 to-transparent border border-white/10 rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6 shadow-2xl">
+          {/* Decorative shapes inside the banner */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-dusty-denim/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-blue-slate/15 rounded-full blur-2xl pointer-events-none" />
+          
+          <div className="relative z-10 space-y-2.5">
+            <div className="inline-flex items-center gap-1.5 bg-dusty-denim/20 border border-dusty-denim/30 text-eggshell rounded-full px-3 py-1 text-[10px] font-mono tracking-widest uppercase">
+              <Sparkles className="w-3 h-3 text-eggshell animate-pulse" /> Vista de Fiesta / Grupo
+            </div>
+            <h2 className="font-display font-black text-3xl sm:text-4xl text-white tracking-tight leading-none">
               🎉 {selectedCol.name}
-            </h3>
+            </h2>
+            <p className="text-xs text-slate-400 font-mono">
+              Grupo creado el {selectedCol.createdAt} · {colAds.length} {colAds.length === 1 ? "anuncio asignado" : "anuncios asignados"}
+            </p>
           </div>
-          <button
-            onClick={() => {
-              if (confirm("¿Estás seguro de que quieres eliminar esta fiesta? No se borrarán los anuncios.")) {
-                onDeleteCollection(selectedCol.id);
-                setSelectedColId(null);
-              }
-            }}
-            className="flex items-center gap-1.5 border border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs font-mono py-2 px-4 rounded-full transition-all cursor-pointer"
-          >
-            <Trash2 className="w-3.5 h-3.5" /> Eliminar Fiesta
-          </button>
+
+          <div className="relative z-10 flex flex-wrap gap-3">
+            <button
+              onClick={() => setSelectedColId(null)}
+              className="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 text-xs font-mono text-slate-300 hover:text-white hover:bg-white/10 py-2.5 px-5 rounded-full transition-all cursor-pointer"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" /> Volver a Grupos
+            </button>
+            <button
+              onClick={() => {
+                if (confirm("¿Estás seguro de que quieres eliminar esta fiesta? No se borrarán los anuncios.")) {
+                  onDeleteCollection(selectedCol.id);
+                  setSelectedColId(null);
+                }
+              }}
+              className="flex items-center gap-1.5 bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/25 text-xs font-mono py-2.5 px-5 rounded-full transition-all cursor-pointer"
+            >
+              <Trash2 className="w-3.5 h-3.5" /> Eliminar Fiesta
+            </button>
+          </div>
         </div>
 
-        {/* Aggregate KPI Grid */}
-        <KpiGrid agg={colAgg} />
-
-        {/* Visual Charts */}
-        {colAds.length > 0 ? (
-          <>
-            <VisualCharts ads={colAds} />
-            <div>
-              <h4 className="font-display font-semibold text-base text-white mb-3">Anuncios en esta Fiesta</h4>
-              <AdTable ads={colAds} onRename={onRenameAd} onDelete={onDeleteAd} />
-            </div>
-          </>
-        ) : (
-          <div className="bg-[#16191f] border border-white/5 rounded-xl p-8 text-center text-slate-500 font-mono">
-            No quedan anuncios válidos en este grupo. Todos fueron eliminados del panel.
+        {/* Unified Fiesta Workspace Wrapper */}
+        <div className="relative border-2 border-dashed border-blue-slate/20 bg-[#1d2d44]/10 rounded-2xl p-6 sm:p-8 space-y-8 shadow-inner">
+          <div className="absolute top-4 right-6 hidden md:block select-none">
+            <span className="font-mono text-[9px] uppercase tracking-widest text-slate-500 bg-ink-black/40 border border-white/5 px-2.5 py-1 rounded-md">
+              Filtro Activo: {selectedCol.name}
+            </span>
           </div>
-        )}
+
+          {/* Aggregate KPI Grid in Fiesta variant */}
+          <KpiGrid agg={colAgg} variant="fiesta" />
+
+          {/* Visual Charts in Fiesta variant */}
+          {colAds.length > 0 ? (
+            <div className="space-y-8">
+              <VisualCharts ads={colAds} variant="fiesta" />
+              
+              <div className="bg-[#1d2d44]/30 border border-white/10 rounded-xl p-6 shadow-sm">
+                <div className="flex items-center gap-2 mb-4 border-b border-white/10 pb-3">
+                  <h4 className="font-display font-semibold text-base text-white">
+                    Anuncios agrupados
+                  </h4>
+                  <span className="text-[10px] font-mono text-dusty-denim bg-dusty-denim/10 border border-dusty-denim/20 rounded-full px-2 py-0.5 font-bold">
+                    {colAds.length} {colAds.length === 1 ? "anuncio" : "anuncios"}
+                  </span>
+                </div>
+                <AdTable ads={colAds} onRename={onRenameAd} onDelete={onDeleteAd} />
+              </div>
+            </div>
+          ) : (
+            <div className="bg-[#1d2d44]/40 border border-white/10 rounded-xl p-8 text-center text-slate-500 font-mono">
+              No quedan anuncios válidos en este grupo. Todos fueron eliminados del panel.
+            </div>
+          )}
+        </div>
       </div>
     );
   }
@@ -101,7 +130,7 @@ export default function FiestasTab({
   return (
     <div className="space-y-8">
       {/* Creation form */}
-      <div className="bg-[#16191f] border border-white/5 rounded-xl p-6">
+      <div className="bg-jet-card border border-white/5 rounded-xl p-6">
         <h3 className="font-display font-semibold text-lg text-white border-b border-white/10 pb-3 mb-4">
           Crear una Fiesta / Grupo de Anuncios
         </h3>
@@ -115,7 +144,7 @@ export default function FiestasTab({
               placeholder="Ej: Lanzamiento 27 de Junio"
               value={newColName}
               onChange={(e) => setNewColName(e.target.value)}
-              className="w-full sm:max-w-md bg-[#0a0b0d] border border-white/10 focus:border-blue-500 focus:outline-none rounded-xl px-4 py-3 text-sm text-white font-sans"
+              className="w-full sm:max-w-md bg-jet border border-white/10 focus:border-orchid focus:outline-none rounded-xl px-4 py-3 text-sm text-white font-sans"
               required
             />
           </div>
@@ -125,18 +154,18 @@ export default function FiestasTab({
               Selecciona los anuncios a agrupar ({selectedAdIds.length} seleccionados)
             </label>
             {ads.length > 0 ? (
-              <div className="border border-white/10 rounded-xl max-h-56 overflow-y-auto divide-y divide-white/5 bg-[#0a0b0d]">
+              <div className="border border-white/10 rounded-xl max-h-56 overflow-y-auto divide-y divide-white/5 bg-jet">
                 {ads.map((ad) => {
                   const isChecked = selectedAdIds.includes(ad.id);
                   return (
                     <div
                       key={ad.id}
                       onClick={() => handleToggleAdSelection(ad.id)}
-                      className="flex items-center gap-3 p-3 hover:bg-blue-500/[0.02] cursor-pointer transition-colors"
+                      className="flex items-center gap-3 p-3 hover:bg-orchid/[0.02] cursor-pointer transition-colors"
                     >
                       <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${
                         isChecked
-                          ? "bg-blue-600 border-blue-500"
+                          ? "bg-orchid border-orchid"
                           : "border-slate-600"
                       }`}>
                         {isChecked && <Check className="w-3 h-3 text-white stroke-[3px]" />}
@@ -162,7 +191,7 @@ export default function FiestasTab({
           <button
             type="submit"
             disabled={!newColName.trim() || selectedAdIds.length === 0}
-            className="w-full sm:w-auto bg-blue-600 text-white font-display font-extrabold text-xs uppercase tracking-wider px-6 py-3.5 rounded-full hover:bg-blue-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer shadow-md"
+            className="w-full sm:w-auto bg-orchid text-jet font-display font-black text-xs uppercase tracking-wider px-6 py-3.5 rounded-full hover:bg-orchid/90 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer shadow-md"
           >
             Crear Fiesta
           </button>
@@ -182,14 +211,14 @@ export default function FiestasTab({
                 <div
                   key={col.id}
                   onClick={() => setSelectedColId(col.id)}
-                  className="bg-[#16191f] border border-white/5 hover:border-blue-500/30 rounded-xl p-5 cursor-pointer transition-all hover:-translate-y-0.5 shadow-md flex flex-col justify-between group animate-fade-in"
+                  className="bg-jet-card border border-white/5 hover:border-orchid/40 rounded-xl p-5 cursor-pointer transition-all hover:-translate-y-0.5 shadow-md flex flex-col justify-between group animate-fade-in"
                 >
                   <div>
                     <div className="flex items-center justify-between gap-2 mb-2">
-                      <h4 className="font-display font-bold text-base text-white group-hover:text-blue-400 transition-colors truncate">
+                      <h4 className="font-display font-bold text-base text-white group-hover:text-orchid transition-colors truncate">
                         {col.name}
                       </h4>
-                      <span className="text-[10px] font-mono text-slate-400 bg-[#0a0b0d] border border-white/10 rounded-full px-2 py-0.5 shrink-0">
+                      <span className="text-[10px] font-mono text-slate-400 bg-jet border border-white/10 rounded-full px-2 py-0.5 shrink-0">
                         {activeColAds.length} {activeColAds.length === 1 ? "anuncio" : "anuncios"}
                       </span>
                     </div>
@@ -200,7 +229,7 @@ export default function FiestasTab({
                       </div>
                       <div className="flex justify-between">
                         <span>Clics:</span>
-                        <span className="text-blue-400">{agg.totalAllClicks ? Math.round(agg.totalAllClicks).toLocaleString("es-AR") : "—"}</span>
+                        <span className="text-orchid">{agg.totalAllClicks ? Math.round(agg.totalAllClicks).toLocaleString("es-AR") : "—"}</span>
                       </div>
                     </div>
                   </div>
@@ -210,7 +239,7 @@ export default function FiestasTab({
                       <Calendar className="w-3.5 h-3.5" />
                       {col.createdAt}
                     </span>
-                    <span className="text-blue-400 group-hover:underline">Ver detalles →</span>
+                    <span className="text-orchid group-hover:underline">Ver detalles →</span>
                   </div>
                 </div>
               );

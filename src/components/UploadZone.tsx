@@ -97,8 +97,8 @@ export default function UploadZone({ onImportComplete }: UploadZoneProps) {
           onClick={() => fileInputRef.current?.click()}
           className={`border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-all duration-200 ${
             isDragging
-              ? "border-blue-500 bg-blue-500/5"
-              : "border-white/10 bg-[#16191f] hover:border-blue-500/40 hover:bg-blue-500/[0.01]"
+              ? "border-orchid bg-orchid/5"
+              : "border-white/10 bg-jet-card hover:border-orchid/40 hover:bg-orchid/[0.02]"
           }`}
         >
           <input
@@ -109,7 +109,7 @@ export default function UploadZone({ onImportComplete }: UploadZoneProps) {
             className="hidden"
           />
           <div className="flex flex-col items-center gap-3">
-            <div className="p-4 bg-[#0a0b0d] border border-white/10 rounded-full text-blue-400">
+            <div className="p-4 bg-jet border border-white/10 rounded-full text-orchid">
               <UploadCloud className="w-8 h-8" />
             </div>
             <div>
@@ -124,7 +124,7 @@ export default function UploadZone({ onImportComplete }: UploadZoneProps) {
       {pendingAds.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <span className="inline-flex items-center gap-1.5 font-mono text-[11px] text-blue-400">
+            <span className="inline-flex items-center gap-1.5 font-mono text-[11px] text-orchid">
               <CheckCircle2 className="w-4 h-4" />
               Se detectaron {pendingAds.length} anuncios en el archivo
             </span>
@@ -136,11 +136,11 @@ export default function UploadZone({ onImportComplete }: UploadZoneProps) {
             </button>
           </div>
 
-          <div className="bg-[#16191f] border border-white/5 rounded-xl overflow-hidden">
+          <div className="bg-jet-card border border-white/5 rounded-xl overflow-hidden">
             <div className="overflow-x-auto max-h-96">
               <table className="w-full border-collapse text-left text-xs">
                 <thead>
-                  <tr className="border-b border-white/10 bg-[#0a0b0d] font-mono text-slate-500 uppercase tracking-wider text-[10px]">
+                  <tr className="border-b border-white/10 bg-jet font-mono text-slate-500 uppercase tracking-wider text-[10px]">
                     <th className="py-3 px-4 font-semibold">Etiqueta para el Panel (editable)</th>
                     <th className="py-3 px-4 font-semibold">Campaña / Anuncio Original</th>
                     <th className="py-3 px-4 font-semibold text-right">Gasto</th>
@@ -149,13 +149,13 @@ export default function UploadZone({ onImportComplete }: UploadZoneProps) {
                 </thead>
                 <tbody className="divide-y divide-white/5">
                   {pendingAds.map((ad, idx) => (
-                    <tr key={ad.id} className="hover:bg-blue-500/[0.01]">
+                    <tr key={ad.id} className="hover:bg-orchid/[0.02]">
                       <td className="py-2.5 px-4">
                         <input
                           type="text"
                           value={ad.label}
                           onChange={(e) => handleLabelChange(idx, e.target.value)}
-                          className="w-full bg-[#0a0b0d] border border-white/10 focus:border-blue-500 focus:outline-none rounded-lg px-3 py-1.5 text-xs text-white font-sans font-medium"
+                          className="w-full bg-jet border border-white/10 focus:border-orchid focus:outline-none rounded-lg px-3 py-1.5 text-xs text-white font-sans font-medium"
                         />
                       </td>
                       <td className="py-2.5 px-4 font-mono text-slate-400 truncate max-w-[200px]" title={ad.campaign}>
@@ -165,7 +165,7 @@ export default function UploadZone({ onImportComplete }: UploadZoneProps) {
                         {ad.spend !== null ? `$${ad.spend.toLocaleString("es-AR")}` : "—"}
                       </td>
                       <td className="py-2.5 px-4 text-center">
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#0a0b0d] border border-white/10 text-slate-400">
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-jet border border-white/10 text-slate-400">
                           {ad.status}
                         </span>
                       </td>
@@ -179,13 +179,13 @@ export default function UploadZone({ onImportComplete }: UploadZoneProps) {
           <div className="flex gap-3">
             <button
               onClick={handleSave}
-              className="bg-blue-600 text-white font-display font-bold text-xs uppercase tracking-wider px-6 py-3 rounded-full hover:bg-blue-700 cursor-pointer transition-all shadow-md"
+              className="bg-orchid text-jet font-display font-black text-xs uppercase tracking-wider px-6 py-3 rounded-full hover:bg-orchid/90 cursor-pointer transition-all shadow-md"
             >
               Guardar Anuncios en el Panel
             </button>
             <button
               onClick={handleCancel}
-              className="border border-white/10 bg-white/5 text-slate-300 hover:text-white hover:border-blue-500/40 font-mono text-xs uppercase tracking-wider px-6 py-3 rounded-full transition-colors cursor-pointer"
+              className="border border-white/10 bg-white/5 text-slate-300 hover:text-white hover:border-orchid/40 font-mono text-xs uppercase tracking-wider px-6 py-3 rounded-full transition-colors cursor-pointer"
             >
               Descartar
             </button>

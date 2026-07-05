@@ -6,7 +6,7 @@ import VisualCharts from "./components/VisualCharts";
 import AdTable from "./components/AdTable";
 import UploadZone from "./components/UploadZone";
 import FiestasTab from "./components/FiestasTab";
-import { Download, Upload, AlertCircle, RefreshCw, BarChart2, PlusCircle, Award } from "lucide-react";
+import { Download, Upload, AlertCircle, RefreshCw, BarChart2, PlusCircle, Award, Settings } from "lucide-react";
 
 export default function App() {
   const [ads, setAds] = useState<AdReport[]>([]);
@@ -15,6 +15,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [dbStatus, setDbStatus] = useState<"connected" | "empty" | "deleted">("connected");
+  const [showSettings, setShowSettings] = useState(false);
 
   // Show Toast helper
   const showToast = (msg: string) => {
@@ -35,8 +36,45 @@ export default function App() {
       const loadedAds = data.ads || [];
       const loadedCols = data.collections || [];
       
+      // Check if server is empty, but we have a backup in browser's local storage
+      const backupAdsRaw = localStorage.getItem("metametrics_ads");
+      const backupColsRaw = localStorage.getItem("metametrics_collections");
+
+      if (loadedAds.length === 0 && backupAdsRaw) {
+        try {
+          const parsedAds = JSON.parse(backupAdsRaw);
+          const parsedCols = backupColsRaw ? JSON.parse(backupColsRaw) : [];
+          
+          if (parsedAds.length > 0) {
+            console.log("Restaurando datos automáticamente desde el respaldo del navegador...");
+            setAds(parsedAds);
+            setCollections(parsedCols);
+            setDbStatus("connected");
+            
+            // Re-write to server's reports.json
+            await fetch("/api/reports", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ ads: parsedAds, collections: parsedCols }),
+            });
+            
+            showToast("¡Datos recuperados y restaurados automáticamente en el servidor!");
+            setLoading(false);
+            return;
+          }
+        } catch (e) {
+          console.error("Error parsing local backup:", e);
+        }
+      }
+      
       setAds(loadedAds);
       setCollections(loadedCols);
+
+      // Keep local backup updated
+      if (loadedAds.length > 0) {
+        localStorage.setItem("metametrics_ads", JSON.stringify(loadedAds));
+        localStorage.setItem("metametrics_collections", JSON.stringify(loadedCols));
+      }
 
       if (loadedAds.length === 0) {
         setDbStatus("empty");
@@ -45,6 +83,23 @@ export default function App() {
       }
     } catch (err) {
       console.error(err);
+      
+      // Fallback: If server is offline/error, try loading from browser backup
+      const backupAdsRaw = localStorage.getItem("metametrics_ads");
+      const backupColsRaw = localStorage.getItem("metametrics_collections");
+      if (backupAdsRaw) {
+        try {
+          const parsedAds = JSON.parse(backupAdsRaw);
+          const parsedCols = backupColsRaw ? JSON.parse(backupColsRaw) : [];
+          setAds(parsedAds);
+          setCollections(parsedCols);
+          setDbStatus("connected");
+          showToast("Servidor sin conexión. Cargando datos locales del navegador.");
+          setLoading(false);
+          return;
+        } catch (e) {}
+      }
+
       setDbStatus("deleted");
       showToast("Sin conexión al archivo reports.json o fue eliminado.");
     } finally {
@@ -58,6 +113,14 @@ export default function App() {
 
   // Save current state back to backend server
   const saveState = async (newAds: AdReport[], newCollections: Collection[]) => {
+    // Save to local storage first as a secure backup
+    try {
+      localStorage.setItem("metametrics_ads", JSON.stringify(newAds));
+      localStorage.setItem("metametrics_collections", JSON.stringify(newCollections));
+    } catch (e) {
+      console.error("Error writing local backup:", e);
+    }
+
     try {
       const res = await fetch("/api/reports", {
         method: "POST",
@@ -72,8 +135,12 @@ export default function App() {
       return true;
     } catch (err) {
       console.error(err);
-      showToast("Error de conexión: No se pudo guardar la información en reports.json.");
-      return false;
+      // Update local React state even if server fails so UI is responsive
+      setAds(newAds);
+      setCollections(newCollections);
+      setDbStatus(newAds.length === 0 ? "empty" : "connected");
+      showToast("Guardado en navegador. Error de sincronización con el servidor.");
+      return true;
     }
   };
 
@@ -203,25 +270,25 @@ export default function App() {
   const globalAgg = aggregate(ads);
 
   return (
-    <div className="min-h-screen bg-[#0a0b0d] text-slate-300 font-sans selection:bg-blue-500/30 relative pb-20">
+    <div className={`min-h-screen bg-ink-black text-slate-300 font-sans selection:bg-dusty-denim/30 relative pb-20 transition-colors duration-500 ${activeTab === "fiestas" ? "theme-fiestas" : "theme-default"}`}>
       {/* Decorative gradients */}
-      <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.03] bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:24px_24px]" />
-      <div className="fixed top-0 left-[15%] w-[800px] h-[500px] rounded-full bg-blue-500/10 blur-[130px] pointer-events-none z-0" />
-      <div className="fixed bottom-10 right-0 w-[600px] h-[400px] rounded-full bg-blue-900/5 blur-[120px] pointer-events-none z-0" />
+      <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.08] bg-[radial-gradient(#748cab_1px,transparent_1px)] [background-size:24px_24px]" />
+      <div className="fixed top-0 left-[15%] w-[800px] h-[500px] rounded-full bg-dusty-denim/10 blur-[130px] pointer-events-none z-0" />
+      <div className="fixed bottom-10 right-0 w-[600px] h-[400px] rounded-full bg-blue-slate/5 blur-[120px] pointer-events-none z-0" />
 
       <div className="max-w-[1180px] mx-auto px-6 relative z-10">
         <header className="py-10 border-b border-white/10 space-y-6">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)] animate-pulse" />
-            <span className="font-mono text-xs text-blue-400 uppercase tracking-widest">
+            <span className="w-2 h-2 rounded-full bg-eggshell shadow-[0_0_10px_rgba(240,235,216,0.6)] animate-pulse" />
+            <span className="font-mono text-xs text-eggshell uppercase tracking-widest">
               Panel de Anuncios · Meta / Instagram
             </span>
           </div>
 
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
-              <h1 className="font-display font-black text-3xl sm:text-4xl md:text-5xl tracking-tight leading-none bg-gradient-to-r from-white via-blue-400 to-blue-600 bg-clip-text text-transparent pb-1">
-                MetaMetrics <span className="text-blue-500 font-normal">Pro</span>
+              <h1 className="font-display font-black text-3xl sm:text-4xl md:text-5xl tracking-tight leading-none bg-gradient-to-r from-white via-eggshell to-dusty-denim bg-clip-text text-transparent pb-1">
+                MetaMetrics <span className="text-eggshell font-normal">Pro</span>
               </h1>
               <p className="text-sm text-slate-400 max-w-2xl mt-3 leading-relaxed">
                 Visualiza los informes exportados de Ads Manager en tiempo real. Agrupa anuncios para fechas de
@@ -229,106 +296,129 @@ export default function App() {
               </p>
             </div>
 
-            {/* Tab navigation */}
-            <nav className="flex gap-2 bg-[#0f1115] p-1 border border-white/10 rounded-full self-start shrink-0">
-              <button
-                onClick={() => setActiveTab("resumen")}
-                className={`px-5 py-2 rounded-full text-xs font-mono uppercase tracking-wider transition-all cursor-pointer ${
-                  activeTab === "resumen"
-                    ? "bg-blue-600 text-white font-bold shadow-lg"
-                    : "text-slate-400 hover:text-white"
-                }`}
-              >
-                Resumen General
-              </button>
-              <button
-                onClick={() => setActiveTab("cargar")}
-                className={`px-5 py-2 rounded-full text-xs font-mono uppercase tracking-wider transition-all cursor-pointer ${
-                  activeTab === "cargar"
-                    ? "bg-blue-600 text-white font-bold shadow-lg"
-                    : "text-slate-400 hover:text-white"
-                }`}
-              >
-                Cargar Informe
-              </button>
-              <button
-                onClick={() => setActiveTab("fiestas")}
-                className={`px-5 py-2 rounded-full text-xs font-mono uppercase tracking-wider transition-all cursor-pointer ${
-                  activeTab === "fiestas"
-                    ? "bg-blue-600 text-white font-bold shadow-lg"
-                    : "text-slate-400 hover:text-white"
-                }`}
-              >
-                Fiestas
-              </button>
-            </nav>
-          </div>
+            {/* Tab navigation & Settings Toggle */}
+            <div className="flex items-center gap-3 self-start shrink-0">
+              <nav className="flex gap-2 bg-jet-dark p-1 border border-white/10 rounded-full">
+                <button
+                  onClick={() => setActiveTab("resumen")}
+                  className={`px-5 py-2 rounded-full text-xs font-mono uppercase tracking-wider transition-all cursor-pointer ${
+                    activeTab === "resumen"
+                      ? "bg-orchid text-jet font-bold shadow-lg"
+                      : "text-slate-400 hover:text-orchid"
+                  }`}
+                >
+                  Resumen General
+                </button>
+                <button
+                  onClick={() => setActiveTab("cargar")}
+                  className={`px-5 py-2 rounded-full text-xs font-mono uppercase tracking-wider transition-all cursor-pointer ${
+                    activeTab === "cargar"
+                      ? "bg-orchid text-jet font-bold shadow-lg"
+                      : "text-slate-400 hover:text-orchid"
+                  }`}
+                >
+                  Cargar Informe
+                </button>
+                <button
+                  onClick={() => setActiveTab("fiestas")}
+                  className={`px-5 py-2 rounded-full text-xs font-mono uppercase tracking-wider transition-all cursor-pointer ${
+                    activeTab === "fiestas"
+                      ? "bg-orchid text-jet font-bold shadow-lg"
+                      : "text-slate-400 hover:text-orchid"
+                  }`}
+                >
+                  Fiestas
+                </button>
+              </nav>
 
-          {/* Database Live Sync Bar */}
-          <div className="bg-[#0f1115] border border-white/10 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 mt-6">
-            <div className="flex items-start gap-3">
-              <div className={`p-2 rounded-lg shrink-0 ${
-                dbStatus === "connected" ? "bg-green-500/10 text-green-400 border border-green-500/20" : "bg-red-500/10 text-red-400 border border-red-500/20"
-              }`}>
-                <AlertCircle className="w-5 h-5" />
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs font-mono text-white">
-                  {dbStatus === "connected" && (
-                    <span>Archivo de base de datos cargado en vivo: <strong className="text-blue-400">reports.json</strong></span>
-                  )}
-                  {dbStatus === "empty" && (
-                    <span>No hay datos en el archivo <strong className="text-red-400">reports.json</strong></span>
-                  )}
-                  {dbStatus === "deleted" && (
-                    <span>El archivo de datos <strong className="text-red-400">reports.json</strong> no está disponible o fue eliminado.</span>
-                  )}
-                </p>
-                <p className="text-[11px] text-slate-400 leading-relaxed">
-                  {dbStatus === "connected" && "Si borras el archivo reports.json del proyecto, todo el panel quedará en blanco."}
-                  {dbStatus === "empty" && "Sube un informe nuevo para autogenerar los datos del panel en reports.json."}
-                  {dbStatus === "deleted" && "Carga un informe o arranca en blanco para volver a crear el archivo reports.json."}
-                </p>
-              </div>
-            </div>
-
-            {/* Quick backup / restore actions */}
-            <div className="flex items-center gap-2 self-end md:self-center">
               <button
-                onClick={handleDownloadBackup}
-                className="flex items-center gap-1.5 border border-white/10 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-xs font-mono py-2 px-3 rounded-lg transition-all cursor-pointer"
-                title="Descargar respaldo local en JSON"
+                onClick={() => setShowSettings(!showSettings)}
+                className={`p-3 rounded-full border transition-all cursor-pointer relative group ${
+                  showSettings
+                    ? "bg-orchid border-orchid text-jet font-bold rotate-45 shadow-md"
+                    : "border-white/10 bg-jet-dark text-slate-400 hover:text-white hover:border-white/25"
+                }`}
+                title="Configuración de Base de Datos y Copias"
               >
-                <Download className="w-3.5 h-3.5" /> Descargar .json
-              </button>
-              <label
-                className="flex items-center gap-1.5 border border-white/10 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-xs font-mono py-2 px-3 rounded-lg transition-all cursor-pointer"
-                title="Restaurar datos desde un .json descargado"
-              >
-                <Upload className="w-3.5 h-3.5" /> Importar .json
-                <input
-                  type="file"
-                  onChange={handleRestoreBackup}
-                  accept=".json"
-                  className="hidden"
-                />
-              </label>
-              <button
-                onClick={fetchData}
-                className="p-2 border border-white/10 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white rounded-lg transition-all cursor-pointer"
-                title="Sincronizar base de datos"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-blue-500" : ""}`} />
+                <Settings className="w-4 h-4" />
               </button>
             </div>
           </div>
+
+          {/* Collapsible Database & Backup Settings Panel */}
+          {showSettings && (
+            <div className="bg-jet-card border-2 border-dashed border-white/10 rounded-2xl p-5 mt-6 animate-fade-in relative overflow-hidden shadow-2xl">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl pointer-events-none" />
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+                <div className="flex items-start gap-3">
+                  <div className={`p-2.5 rounded-xl shrink-0 ${
+                    dbStatus === "connected" ? "bg-green-500/10 text-green-400 border border-green-500/20" : "bg-red-500/10 text-red-400 border border-red-500/20"
+                  }`}>
+                    <AlertCircle className="w-5 h-5" />
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="text-xs font-mono text-white font-bold uppercase tracking-wider flex items-center gap-2">
+                      Sincronización & Respaldos
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                    </h4>
+                    <p className="text-[11px] font-mono text-slate-300">
+                      {dbStatus === "connected" && (
+                        <span>Base de datos: <strong className="text-emerald-400">Firebase Firestore (Nube)</strong></span>
+                      )}
+                      {dbStatus === "empty" && (
+                        <span>Estado: <strong className="text-amber-400">Vacío</strong> (No hay datos en la nube)</span>
+                      )}
+                      {dbStatus === "deleted" && (
+                        <span>Estado: <strong className="text-rose-400">Desconectado</strong></span>
+                      )}
+                    </p>
+                    <p className="text-[10px] text-slate-400 leading-relaxed max-w-xl">
+                      {dbStatus === "connected" && "Tus datos están sincronizados en tiempo real con Google Cloud. Puedes descargar un archivo .json para resguardar tus datos o importarlo en otro navegador."}
+                      {dbStatus === "empty" && "Sube un informe de Meta Ads para activar la base de datos persistente en la nube y guardarlo en todos tus dispositivos."}
+                      {dbStatus === "deleted" && "Carga un informe nuevo para configurar y habilitar la sincronización en la nube."}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Backup & Restore Action Buttons */}
+                <div className="flex flex-wrap items-center gap-2 self-start md:self-center">
+                  <button
+                    onClick={handleDownloadBackup}
+                    className="flex items-center gap-1.5 border border-white/10 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-xs font-mono py-2 px-3.5 rounded-lg transition-all cursor-pointer"
+                    title="Descargar respaldo local en JSON"
+                  >
+                    <Download className="w-3.5 h-3.5" /> Descargar .json
+                  </button>
+                  <label
+                    className="flex items-center gap-1.5 border border-white/10 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-xs font-mono py-2 px-3.5 rounded-lg transition-all cursor-pointer"
+                    title="Restaurar datos desde un .json descargado"
+                  >
+                    <Upload className="w-3.5 h-3.5" /> Importar .json
+                    <input
+                      type="file"
+                      onChange={handleRestoreBackup}
+                      accept=".json"
+                      className="hidden"
+                    />
+                  </label>
+                  <button
+                    onClick={fetchData}
+                    className="p-2 border border-white/10 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white rounded-lg transition-all cursor-pointer"
+                    title="Sincronizar base de datos"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-orchid" : ""}`} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </header>
 
         {/* Core content views */}
         <main className="py-8">
           {loading && ads.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 gap-3">
-              <RefreshCw className="w-8 h-8 animate-spin text-blue-500" />
+              <RefreshCw className="w-8 h-8 animate-spin text-orchid" />
               <p className="font-mono text-xs text-slate-400 uppercase tracking-wider">Cargando base de datos...</p>
             </div>
           ) : (
@@ -376,7 +466,7 @@ export default function App() {
         <footer className="mt-20 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px] font-mono text-slate-500">
           <span>IMCREW / Muelle Costanera · Base de datos en reports.json</span>
           <span className="flex items-center gap-1">
-            <Award className="w-3.5 h-3.5 text-blue-400" />
+            <Award className="w-3.5 h-3.5 text-eggshell" />
             Guardado Local & Archivo Físico Sincronizado
           </span>
         </footer>
@@ -384,8 +474,8 @@ export default function App() {
 
       {/* Floating Toast notification */}
       {toastMsg && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-[#16191f] border border-blue-500/40 px-6 py-3 rounded-full text-xs font-mono text-white shadow-[0_4px_20px_rgba(59,130,246,0.15)] z-50 flex items-center gap-2 animate-bounce">
-          <span className="w-2 h-2 rounded-full bg-blue-500" />
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-deep-space border border-eggshell/30 px-6 py-3 rounded-full text-xs font-mono text-white shadow-[0_4px_20px_rgba(240,235,216,0.12)] z-50 flex items-center gap-2 animate-bounce">
+          <span className="w-2 h-2 rounded-full bg-eggshell" />
           {toastMsg}
         </div>
       )}

@@ -1,0 +1,26 @@
+{
+  "entities": {
+    "Report": {
+      "title": "Report",
+      "description": "Consolidated reports for ads and collections.",
+      "type": "object",
+      "properties": {
+        "ads": {
+          "type": "array"
+        },
+        "collections": {
+          "type": "array"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "firestore": {
+    "/reports/data": {
+      "schema": "Report",
+      "description": "Single consolidated report document containing all campaign data."
+    }
+  }
+}
