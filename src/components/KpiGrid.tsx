@@ -9,9 +9,8 @@ interface KpiGridProps {
 export default function KpiGrid({ agg }: KpiGridProps) {
   const costPerPurchase = agg.totalPurchases > 0 ? agg.totalSpend / agg.totalPurchases : null;
   const costPerInitiated = agg.totalInitiatedCheckouts > 0 ? agg.totalSpend / agg.totalInitiatedCheckouts : null;
-  const costPerView = agg.totalContentViews > 0 ? agg.totalSpend / agg.totalContentViews : null;
 
-  const hasPixelData = agg.totalPurchases > 0 || agg.totalInitiatedCheckouts > 0 || agg.totalContentViews > 0;
+  const hasPixelData = agg.totalPurchases > 0 || agg.totalInitiatedCheckouts > 0;
 
   return (
     <div className="space-y-6 mb-8">
@@ -85,21 +84,7 @@ export default function KpiGrid({ agg }: KpiGridProps) {
             <span className="text-[10px] text-slate-500 font-mono italic">No se detectaron datos de píxel en el informe subido</span>
           )}
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {/* Pixel 1 */}
-          <div className="bg-[#16191f] border border-white/5 rounded-xl p-5 hover:border-emerald-500/30 transition-colors duration-200">
-            <div className="flex justify-between items-start mb-2">
-              <span className="font-mono text-[11px] text-slate-500 uppercase tracking-wider">Vistas de Contenido</span>
-              <Target className="w-4 h-4 text-emerald-500" />
-            </div>
-            <div className="font-display font-extrabold text-2xl text-white tracking-tight">
-              {fmtInt(agg.totalContentViews)}
-            </div>
-            <div className="font-mono text-[10px] text-slate-400 mt-1">
-              Costo/Vista: {costPerView !== null ? fmtMoney2(costPerView) : "—"}
-            </div>
-          </div>
-
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Pixel 2 */}
           <div className="bg-[#16191f] border border-white/5 rounded-xl p-5 hover:border-amber-500/30 transition-colors duration-200">
             <div className="flex justify-between items-start mb-2">
