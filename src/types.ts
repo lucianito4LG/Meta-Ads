@@ -23,6 +23,9 @@ export interface AdReport {
   cpcAll?: number | null;
   landingViews?: number | null;
   costPerLanding?: number | null;
+  purchases?: number | null;
+  initiatedCheckouts?: number | null;
+  contentViews?: number | null;
   label: string;
   uploadedAt: string;
   source: string;
@@ -42,6 +45,9 @@ export interface AggregationResult {
   totalAllClicks: number;
   totalLinkClicks: number;
   totalLanding: number;
+  totalPurchases: number;
+  totalInitiatedCheckouts: number;
+  totalContentViews: number;
   avgCtrAll: number | null;
   avgCtrLink: number | null;
   avgCpcAll: number | null;

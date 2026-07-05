@@ -48,6 +48,9 @@ export default function AdTable({ ads, onRename, onDelete }: AdTableProps) {
               <th className="py-4 px-4 font-semibold text-right">Gastado</th>
               <th className="py-4 px-4 font-semibold text-right">CPM</th>
               <th className="py-4 px-4 font-semibold text-right">Landing</th>
+              <th className="py-4 px-4 font-semibold text-right text-emerald-400">Vistas Cont.</th>
+              <th className="py-4 px-4 font-semibold text-right text-amber-400">Pagos Inic.</th>
+              <th className="py-4 px-4 font-semibold text-right text-rose-400">Compras</th>
               <th className="py-4 px-4 font-semibold text-center">Acciones</th>
             </tr>
           </thead>
@@ -78,6 +81,15 @@ export default function AdTable({ ads, onRename, onDelete }: AdTableProps) {
                   <td className="py-3.5 px-4 text-right font-mono text-slate-300">
                     {ad.landingViews !== null ? fmtInt(ad.landingViews) : "—"}
                   </td>
+                  <td className="py-3.5 px-4 text-right font-mono text-emerald-400">
+                    {ad.contentViews !== null && ad.contentViews !== undefined ? fmtInt(ad.contentViews) : "—"}
+                  </td>
+                  <td className="py-3.5 px-4 text-right font-mono text-amber-400">
+                    {ad.initiatedCheckouts !== null && ad.initiatedCheckouts !== undefined ? fmtInt(ad.initiatedCheckouts) : "—"}
+                  </td>
+                  <td className="py-3.5 px-4 text-right font-mono text-rose-400">
+                    {ad.purchases !== null && ad.purchases !== undefined ? fmtInt(ad.purchases) : "—"}
+                  </td>
                   <td className="py-3.5 px-4 text-center">
                     <div className="flex items-center justify-center gap-1">
                       <button
@@ -100,7 +112,7 @@ export default function AdTable({ ads, onRename, onDelete }: AdTableProps) {
               ))
             ) : (
               <tr>
-                <td colSpan={11} className="py-12 text-center text-slate-500 font-mono text-sm">
+                <td colSpan={14} className="py-12 text-center text-slate-500 font-mono text-sm">
                   No hay anuncios cargados. Cargá un reporte desde la pestaña "Cargar Informe" o restaurá un respaldo.
                 </td>
               </tr>

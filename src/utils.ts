@@ -35,6 +35,9 @@ export function aggregate(ads: AdReport[]): AggregationResult {
   const totalAllClicks = sum("allClicks");
   const totalLinkClicks = sum("linkClicks");
   const totalLanding = sum("landingViews");
+  const totalPurchases = sum("purchases");
+  const totalInitiatedCheckouts = sum("initiatedCheckouts");
+  const totalContentViews = sum("contentViews");
 
   const avgCtrAll = totalImpr ? (totalAllClicks / totalImpr) * 100 : null;
   const avgCtrLink = totalImpr ? (totalLinkClicks / totalImpr) * 100 : null;
@@ -49,6 +52,9 @@ export function aggregate(ads: AdReport[]): AggregationResult {
     totalAllClicks,
     totalLinkClicks,
     totalLanding,
+    totalPurchases,
+    totalInitiatedCheckouts,
+    totalContentViews,
     avgCtrAll,
     avgCtrLink,
     avgCpcAll,
@@ -80,6 +86,9 @@ const HEADER_RULES: [keyof AdReport, (h: string) => boolean][] = [
   ["allClicks", (h) => h.includes("clics") && h.includes("todos")],
   ["landingViews", (h) => h.includes("visitas a la pagina de destino") || h.includes("visitas a la página de destino")],
   ["costPerLanding", (h) => h.includes("coste por visita a la pagina") || h.includes("costo por visita a la página")],
+  ["purchases", (h) => h.includes("compras")],
+  ["initiatedCheckouts", (h) => h.includes("pagos iniciados") || h.includes("inicio de pago") || h.includes("inicios de pago")],
+  ["contentViews", (h) => h.includes("visualizaciones de contenido") || h.includes("vistas de contenido") || h.includes("visualizacion de contenido")],
   ["endDate", (h) => h.trim() === "fin" || h.includes("fecha de finalizacion")],
 ];
 
@@ -147,6 +156,9 @@ export function parseWorkbook(arrayBuffer: ArrayBuffer, filename: string): AdRep
       cpcAll: parseNum(mapped.cpcAll),
       landingViews: parseNum(mapped.landingViews),
       costPerLanding: parseNum(mapped.costPerLanding),
+      purchases: parseNum(mapped.purchases),
+      initiatedCheckouts: parseNum(mapped.initiatedCheckouts),
+      contentViews: parseNum(mapped.contentViews),
       label,
       uploadedAt: new Date().toISOString().slice(0, 10),
       source: filename,

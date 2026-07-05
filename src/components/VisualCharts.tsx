@@ -24,6 +24,9 @@ export default function VisualCharts({ ads }: VisualChartsProps) {
   const totalReach = ads.reduce((sum, a) => sum + (a.reach || 0), 0);
   const totalClicks = ads.reduce((sum, a) => sum + (a.linkClicks || 0), 0);
   const totalLanding = ads.reduce((sum, a) => sum + (a.landingViews || 0), 0);
+  const totalContentViews = ads.reduce((sum, a) => sum + (a.contentViews || 0), 0);
+  const totalInitiatedCheckouts = ads.reduce((sum, a) => sum + (a.initiatedCheckouts || 0), 0);
+  const totalPurchases = ads.reduce((sum, a) => sum + (a.purchases || 0), 0);
 
   return (
     <div className="bg-[#16191f] border border-white/5 rounded-xl p-6 mb-8">
@@ -258,7 +261,66 @@ export default function VisualCharts({ ads }: VisualChartsProps) {
                   </div>
                 </div>
               </div>
+              {(totalContentViews > 0 || totalInitiatedCheckouts > 0 || totalPurchases > 0) && (
+                <div className="w-full h-2 bg-gradient-to-b from-purple-500/5 to-transparent mx-auto max-w-[60%] -mt-1 rounded-b-lg border-x border-b border-white/5" />
+              )}
             </div>
+
+            {/* Stage 5: Content Views */}
+            {(totalContentViews > 0 || totalInitiatedCheckouts > 0 || totalPurchases > 0) && (
+              <div className="relative group">
+                <div className="flex justify-between items-center bg-[#0a0b0d] border border-white/5 rounded-xl p-4 relative z-10 hover:border-emerald-400/40 transition-colors">
+                  <div>
+                    <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider block">Etapa 5 (Píxel)</span>
+                    <span className="text-white font-semibold text-sm">Visualizaciones de Contenido</span>
+                  </div>
+                  <div className="text-right font-mono">
+                    <div className="text-emerald-400 font-bold text-lg">{fmtInt(totalContentViews)}</div>
+                    <div className="text-xs text-slate-400">
+                      {totalLanding ? fmtPct((totalContentViews / totalLanding) * 100) : "—"} intencionalidad
+                    </div>
+                  </div>
+                </div>
+                <div className="w-full h-2 bg-gradient-to-b from-emerald-500/5 to-transparent mx-auto max-w-[50%] -mt-1 rounded-b-lg border-x border-b border-white/5" />
+              </div>
+            )}
+
+            {/* Stage 6: Initiated Checkouts */}
+            {(totalInitiatedCheckouts > 0 || totalPurchases > 0) && (
+              <div className="relative group">
+                <div className="flex justify-between items-center bg-[#0a0b0d] border border-white/5 rounded-xl p-4 relative z-10 hover:border-amber-400/40 transition-colors">
+                  <div>
+                    <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider block">Etapa 6 (Píxel)</span>
+                    <span className="text-white font-semibold text-sm">Pagos Iniciados</span>
+                  </div>
+                  <div className="text-right font-mono">
+                    <div className="text-amber-400 font-bold text-lg">{fmtInt(totalInitiatedCheckouts)}</div>
+                    <div className="text-xs text-slate-400">
+                      {totalContentViews ? fmtPct((totalInitiatedCheckouts / totalContentViews) * 100) : "—"} checkout inicial
+                    </div>
+                  </div>
+                </div>
+                <div className="w-full h-2 bg-gradient-to-b from-amber-500/5 to-transparent mx-auto max-w-[40%] -mt-1 rounded-b-lg border-x border-b border-white/5" />
+              </div>
+            )}
+
+            {/* Stage 7: Purchases */}
+            {totalPurchases > 0 && (
+              <div className="relative group">
+                <div className="flex justify-between items-center bg-[#0a0b0d] border border-white/5 rounded-xl p-4 relative z-10 hover:border-rose-400/40 transition-colors">
+                  <div>
+                    <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider block">Etapa 7 (Píxel)</span>
+                    <span className="text-white font-semibold text-sm font-display font-bold">Compras Completadas</span>
+                  </div>
+                  <div className="text-right font-mono">
+                    <div className="text-rose-400 font-bold text-lg">{fmtInt(totalPurchases)}</div>
+                    <div className="text-xs text-slate-400">
+                      {totalInitiatedCheckouts ? fmtPct((totalPurchases / totalInitiatedCheckouts) * 100) : "—"} cierre de compra
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
